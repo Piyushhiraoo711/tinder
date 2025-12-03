@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema(
   {
-    name: {
+    fullName: {
       type: String,
       required: true,
     },
@@ -12,17 +12,24 @@ const userSchema = new mongoose.Schema(
     },
     gender: {
       type: String,
-      required: true,
       enum: ["male", "female"],
+      required: true,
     },
     password: {
       type: String,
       required: true,
     },
-    profile: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Profile",
-    },
+    connections: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    sentRequests: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    receivedRequests: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    rejections: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    blocked: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    profile: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Profile",
+      },
+    ],
   },
   { timestamps: true }
 );

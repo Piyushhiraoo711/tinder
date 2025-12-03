@@ -5,9 +5,9 @@ import User from "../model/user.model.js";
 // register user
 export const register = async (req, res) => {
   try {
-    const { name, phone, gender, password } = req.body;
+    const { fullName, phone, gender, password } = req.body;
 
-    if (!(name && phone && gender && password)) {
+    if (!(fullName && phone && gender && password)) {
       return res.json({ success: false, message: "All fields are required" });
     }
 
@@ -22,7 +22,7 @@ export const register = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
     await User.create({
-      name,
+      fullName,
       phone,
       gender,
       password: hashedPassword,
@@ -43,7 +43,9 @@ export const login = async (req, res) => {
         message: "All fields are required",
       });
     }
-    let user = await User.findOne({ phone });
+
+    const user = await User.findOne({ phone });
+
     if (!user) {
       return res.status(400).json({
         success: false,
@@ -62,17 +64,17 @@ export const login = async (req, res) => {
     const tokenData = {
       userId: user._id,
     };
-    
+
     const token = await jwt.sign(tokenData, process.env.SECRET_KEY, {
       expiresIn: "3d",
     });
 
-    user = {
-      _id: user._id,
-      name: user.name,
-      phone: user.phone,
-      gender: user.gender,
-    };
+    // user = {
+    //   _id: user._id,
+    //   fullName: user.fullName,
+    //   phone: user.phone,
+    //   gender: user.gender,
+    // };
 
     return res
       .status(200)
@@ -82,9 +84,9 @@ export const login = async (req, res) => {
         sameSite: "Strict",
       })
       .json({
-        success: false,
-        message: `Welcome back ${user.name}`,
-        user,
+        success: true,
+        message: `Welcome back ${user.fullName}`,
+        // user,
       });
   } catch (error) {
     console.log(error);
@@ -98,6 +100,57 @@ export const logout = async (req, res) => {
       success: true,
       message: "Logged out successfully",
     });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+// get all connectons of user
+export const myConnections = async (req, res) => {
+  try {
+    const userId = req.id;
+    const myConnection = await User.findById(userId);
+
+    const allConnection = await User.find({
+      _id: { $in: myConnection.connections },
+    }).select("fullName");
+
+    if (!allConnection) {
+      return res
+        .status(404)
+        .json({ success: false, message: "No connection found" });
+    }
+    return res.status(200).json(allConnection);
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+// block user
+export const blockConnection = async (req, res) => {
+  try {
+    const userId = req.id;
+    const blockedId = req.params.id;
+
+    const blocker = await User.findById(userId);
+    const blocked = await User.findById(blockedId);
+
+    blocker.connections = await blocker.connections.filter(
+      (id) => id.toString() !== blockedId
+    );
+    blocker.sentRequests = await blocker.sentRequests.filter(
+      (id) => id.toString() !== blockedId
+    );
+    blocked.connections = await blocked.connections.filter(
+      (id) => id.toString() !== userId
+    );
+
+    blocker.blocked.push(blockedId);
+
+    blocker.save();
+    blocked.save();
+
+    return res.status(200).json({ success: true, message: "Blocked" });
   } catch (error) {
     console.log(error);
   }

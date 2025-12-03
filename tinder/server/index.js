@@ -1,7 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
 import { ConnectDB } from "./database/connectdb.js";
-import { requestRoute, userRoutes } from "./routes/index.js";
+import { messageRoute, requestRoute, userRoutes } from "./routes/index.js";
 import cookieParser from "cookie-parser";
 
 dotenv.config();
@@ -13,8 +13,9 @@ app.use(cookieParser());
 
 const PORT = process.env.PORT || 3000;
 
-app.use("/api/v1/user", userRoutes)
-app.use("/api/v1/request", requestRoute)
+app.use("/api/v1/user", userRoutes);
+app.use("/api/v1/request", requestRoute);
+app.use("/api/v1/message", messageRoute);
 
 app.listen(PORT, () => {
   ConnectDB();

@@ -2,12 +2,12 @@ import mongoose from "mongoose";
 
 const requestSchema = new mongoose.Schema(
   {
-    sender: {
+    senderId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
-    receiver: {
+    receiverId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
@@ -22,7 +22,6 @@ const requestSchema = new mongoose.Schema(
       default: Date.now,
     },
   },
-  { timestamps: true }
 );
 
 const Request = mongoose.model("Request", requestSchema);
